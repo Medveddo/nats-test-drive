@@ -1,0 +1,35 @@
+version: '3.9'
+
+services:
+  nats:
+    image: nats:alpine
+    container_name: nats
+    command: nats-server -D -c /etc/nats/nats-server.conf
+    volumes:
+      - ./nats/config/jetstream.conf:/etc/nats/nats-server.conf
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+
+  nats_sub:
+    image: demo_nuts
+    build: 
+      context: .
+    container_name: nats_sub
+    environment:
+      - NATS_URL=${NATS_URL}
+      - PYTHONBUFFERED=1
+    depends_on:
+      - nats
+
+  nats_pub:
+    image: demo_nuts
+    build: 
+      context: .
+    container_name: nats_pub
+    command: jet_stream_pub.py
+    environment:
+      - NATS_URL=${NATS_URL}
+      - PYTHONBUFFERED=1
+    depends_on:
+      - nats
